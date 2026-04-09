@@ -154,7 +154,7 @@ def build_feedback(income, dti, cibil, loan_amt, work_exp, emp_type, emp_cat, ed
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return "Loan Eligibility Predictor is running!"
 
 
 @app.route('/predict', methods=['POST'])

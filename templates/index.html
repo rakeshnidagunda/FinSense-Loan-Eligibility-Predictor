@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>FinSense – Personal Loan Eligibility</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#07090f; --s1:#0d1117; --s2:#111827;
+  --border:#1c2a3a; --border2:#243447;
+  --blue:#3b82f6; --cyan:#22d3ee;
+  --green:#10b981; --amber:#f59e0b; --red:#ef4444;
+  --text:#dde6f0; --muted:#4b6070; --muted2:#6b8090; --card:#0f1824;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Outfit',sans-serif; color:var(--text);
+  background:var(--bg);
+  background-image:
+    radial-gradient(ellipse 70% 45% at 15% 0%,rgba(59,130,246,.12) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 40% at 90% 100%,rgba(34,211,238,.08) 0%,transparent 55%);
+  display:flex; flex-direction:column; min-height:100vh;
+}
+
+/* HEADER */
+header{
+  padding:1.1rem 2rem; display:flex; align-items:center; gap:.75rem;
+  border-bottom:1px solid var(--border);
+  background:rgba(7,9,15,.9); backdrop-filter:blur(14px);
+  position:sticky; top:0; z-index:100; flex-shrink:0;
+}
+.logo{
+  width:36px; height:36px; border-radius:10px;
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+  display:flex; align-items:center; justify-content:center; font-size:1.1rem;
+}
+.logo-text{font-size:1.25rem; font-weight:800; letter-spacing:-.03em}
+.logo-text span{background:linear-gradient(90deg,var(--blue),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hbadge{margin-left:auto;font-size:.65rem;font-weight:600;letter-spacing:.08em;background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.25);color:var(--cyan);padding:.25rem .75rem;border-radius:999px}
+
+/* MAIN fills remaining height */
+main{
+  flex:1; display:flex; flex-direction:column;
+  max-width:920px; width:100%; margin:0 auto;
+  padding:1.8rem 1.5rem 2rem;
+}
+
+/* HERO smaller to save space */
+.hero{text-align:center; margin-bottom:1.5rem}
+.hero h2{
+  font-size:clamp(1.6rem,4vw,2.4rem); font-weight:800;
+  letter-spacing:-.04em; line-height:1.15;
+  background:linear-gradient(120deg,#e2eeff 20%,var(--cyan) 80%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero p{color:var(--muted2); margin-top:.5rem; font-size:.95rem}
+.hero-chips{display:flex;justify-content:center;flex-wrap:wrap;gap:.5rem;margin-top:.9rem}
+.chip{font-size:.72rem;font-weight:500;padding:.25rem .8rem;border-radius:999px;background:var(--s2);border:1px solid var(--border2);color:var(--muted2)}
+
+/* STEP BAR */
+.steps{
+  display:flex; margin-bottom:1.4rem;
+  background:var(--s1); border:1px solid var(--border); border-radius:12px; overflow:hidden;
+}
+.step{
+  flex:1; padding:.7rem .5rem; text-align:center;
+  font-size:.75rem; font-weight:600; color:var(--muted); cursor:pointer;
+  transition:all .2s; border-right:1px solid var(--border);
+}
+.step:last-child{border-right:none}
+.step.active{background:rgba(59,130,246,.12);color:var(--blue)}
+.step.done{color:var(--green)}
+.step-num{display:block;font-family:'JetBrains Mono',monospace;font-size:.6rem;margin-bottom:.15rem;opacity:.6}
+
+/* CARD fills remaining space */
+.card{
+  background:var(--card); border:1px solid var(--border);
+  border-radius:18px; flex:1; display:flex; flex-direction:column;
+  box-shadow:0 25px 60px rgba(0,0,0,.4); overflow:hidden;
+}
+
+.page{display:none; flex-direction:column; height:100%; padding:2rem 2.2rem}
+.page.active{display:flex; animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.sec-label{
+  font-size:.65rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--cyan); margin-bottom:1.2rem; padding-bottom:.5rem;
+  border-bottom:1px solid var(--border); display:flex; align-items:center; gap:.45rem;
+}
+
+/* GRID fills vertical space evenly */
+.form-body{flex:1; display:flex; flex-direction:column; gap:1.1rem}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:1.1rem}
+.grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.1rem}
+@media(max-width:620px){.grid2,.grid3{grid-template-columns:1fr}}
+.full{grid-column:1/-1}
+
+.field{display:flex; flex-direction:column; gap:.4rem}
+label{font-size:.77rem; font-weight:500; color:var(--muted2); letter-spacing:.02em}
+label .req{color:var(--red); margin-left:2px}
+
+input[type=number], input[type=text], select{
+  background:var(--s2); border:1.5px solid var(--border2);
+  border-radius:9px; color:var(--text);
+  font-family:'Outfit',sans-serif; font-size:.93rem;
+  padding:.68rem 1rem; outline:none; width:100%;
+  transition:border-color .2s,box-shadow .2s; appearance:none;
+}
+input:focus, select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+input::placeholder{color:var(--muted)}
+.pfx-wrap{position:relative}
+.pfx{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.9rem;pointer-events:none}
+.pfx-wrap input{padding-left:1.8rem}
+.sfx{position:absolute;right:.85rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.75rem;pointer-events:none}
+.pfx-wrap.has-sfx input{padding-right:3rem}
+
+/* PILLS */
+.pills{display:flex; gap:.4rem; flex-wrap:wrap}
+.pills input{display:none}
+.pills label{
+  padding:.5rem 1rem; border-radius:7px; cursor:pointer;
+  border:1.5px solid var(--border2); font-size:.82rem; font-weight:500;
+  color:var(--muted); background:var(--s2); transition:all .18s;
+}
+.pills input:checked+label{background:rgba(59,130,246,.18);border-color:var(--blue);color:var(--text)}
+
+/* CIBIL SLIDER */
+.cibil-wrap{display:flex;flex-direction:column;gap:.45rem}
+input[type=range]{
+  width:100%; height:4px; border-radius:999px;
+  background:linear-gradient(to right,var(--blue) var(--pct,0%),var(--border2) var(--pct,0%));
+  outline:none; border:none; padding:0; cursor:pointer;
+  -webkit-appearance:none; appearance:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; width:17px; height:17px;
+  border-radius:50%; background:var(--blue);
+  border:2px solid var(--bg); box-shadow:0 0 0 3px rgba(59,130,246,.3); cursor:pointer;
+}
+.cibil-bar-bg{height:7px;border-radius:999px;background:linear-gradient(to right,#ef4444 0%,#f59e0b 35%,#eab308 55%,#10b981 75%,#06b6d4 100%)}
+.cibil-bands{display:flex;justify-content:space-between;margin-top:.3rem}
+.cibil-bands span{font-size:.62rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.slider-val{font-family:'JetBrains Mono',monospace;font-size:.88rem;color:var(--blue);font-weight:500}
+
+/* DTI LIVE */
+.dti-box{
+  background:var(--s2); border:1px solid var(--border2); border-radius:10px;
+  padding:.9rem 1.1rem; display:flex; align-items:center; gap:1rem;
+}
+.dti-num{font-family:'JetBrains Mono',monospace;font-size:1.5rem;font-weight:500;min-width:3.2rem}
+.dti-info{flex:1}
+.dti-bar-wrap{height:5px;background:var(--border2);border-radius:999px;overflow:hidden;margin-bottom:.35rem}
+.dti-bar{height:100%;border-radius:999px;transition:width .4s,background .4s}
+.dti-lbl{font-size:.75rem;color:var(--muted2)}
+
+/* NAV */
+.nav{display:flex;gap:.7rem;margin-top:1.5rem;flex-shrink:0}
+.btn-back{
+  padding:.75rem 1.4rem; border-radius:9px; border:1.5px solid var(--border2);
+  background:transparent; color:var(--muted2);
+  font-family:'Outfit',sans-serif; font-size:.92rem; font-weight:500; cursor:pointer; transition:border-color .2s;
+}
+.btn-back:hover{border-color:var(--blue);color:var(--text)}
+.btn-next,.btn-submit{
+  flex:1; padding:.8rem; border:none; border-radius:9px;
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+  color:#fff; font-family:'Outfit',sans-serif; font-size:.97rem; font-weight:700;
+  cursor:pointer; transition:opacity .2s,transform .15s;
+}
+.btn-next:hover,.btn-submit:hover{opacity:.9;transform:translateY(-1px)}
+.btn-submit.loading{opacity:.7;pointer-events:none}
+
+/* SUMMARY STRIP */
+.summary-strip{
+  margin-top:1rem; background:var(--s2); border:1px solid var(--border2);
+  border-radius:10px; padding:1rem 1.2rem;
+}
+.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem .8rem;font-size:.8rem;color:var(--muted2);margin-top:.6rem}
+@media(max-width:500px){.summary-grid{grid-template-columns:1fr 1fr}}
+
+/* RESULT PANEL */
+#resultPanel{
+  display:none; position:fixed; inset:0; z-index:200;
+  background:rgba(0,0,0,.75); backdrop-filter:blur(8px);
+  overflow-y:auto; padding:1.5rem 1rem;
+}
+#resultPanel.show{display:flex;align-items:flex-start;justify-content:center;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.result-wrap{
+  background:var(--card); border:1px solid var(--border); border-radius:20px;
+  width:100%; max-width:680px; overflow:hidden;
+  box-shadow:0 40px 100px rgba(0,0,0,.6); animation:slideUp .35s ease;
+}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+.r-hero{padding:2rem 2rem 1.6rem;text-align:center;position:relative;overflow:hidden}
+.r-hero::before{content:'';position:absolute;inset:0;opacity:.1;background:radial-gradient(circle at 50% 0%,currentColor 0%,transparent 70%)}
+.r-hero.approved{color:var(--green)}
+.r-hero.rejected{color:var(--red)}
+.r-verdict{font-size:2.8rem;margin-bottom:.4rem}
+.r-title{font-size:1.7rem;font-weight:800;letter-spacing:-.03em}
+.r-conf{font-size:.82rem;color:var(--muted2);margin-top:.35rem}
+.conf-bar-wrap{margin:.9rem auto 0;max-width:200px;height:4px;background:rgba(255,255,255,.1);border-radius:999px;overflow:hidden}
+.conf-bar{height:100%;border-radius:999px;transition:width 1s ease}
+.approved-bar{background:var(--green)}
+.rejected-bar{background:var(--red)}
+
+/* Stats - 4 columns now to show EMI on max separately */
+.r-stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.r-stat{padding:1rem .7rem;text-align:center;border-right:1px solid var(--border)}
+.r-stat:last-child{border-right:none}
+.r-stat-val{font-family:'JetBrains Mono',monospace;font-size:1.05rem;font-weight:500;color:var(--cyan)}
+.r-stat-lbl{font-size:.66rem;color:var(--muted2);margin-top:.25rem;font-weight:500;line-height:1.3}
+.r-stat .warn{color:var(--amber);font-size:.62rem;margin-top:.2rem}
+@media(max-width:480px){.r-stats{grid-template-columns:1fr 1fr}.r-stat{border-bottom:1px solid var(--border)}}
+
+.r-body{padding:1.5rem 2rem 1.8rem}
+.r-section{margin-bottom:1.4rem}
+.r-sec-title{font-size:.67rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;padding-bottom:.45rem;border-bottom:1px solid var(--border)}
+.r-sec-title.green{color:var(--green)}
+.r-sec-title.red{color:var(--red)}
+.r-sec-title.amber{color:var(--amber)}
+
+.r-list{list-style:none;display:flex;flex-direction:column;gap:.5rem}
+.r-list li{display:flex;align-items:flex-start;gap:.65rem;font-size:.86rem;line-height:1.5;color:var(--muted2)}
+.r-list li .ico{flex-shrink:0;margin-top:.05rem}
+
+.tip-card{
+  background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);
+  border-radius:9px; padding:.8rem 1rem;
+  font-size:.83rem; line-height:1.5; color:#d4a843;
+  display:flex; gap:.65rem; align-items:flex-start; margin-bottom:.5rem;
+}
+
+.btn-retry{
+  width:100%; padding:.85rem; border:1.5px solid var(--border2); border-radius:10px;
+  background:transparent; color:var(--muted2); cursor:pointer;
+  font-family:'Outfit',sans-serif; font-size:.93rem; font-weight:500;
+  transition:all .2s; margin-top:.5rem;
+}
+.btn-retry:hover{border-color:var(--blue);color:var(--text)}
+
+#toast{
+  display:none; position:fixed; bottom:2rem; left:50%; transform:translateX(-50%);
+  background:#1a0f0f; border:1px solid var(--red); color:#fca5a5;
+  padding:.7rem 1.3rem; border-radius:9px; font-size:.86rem; z-index:300; max-width:90vw; text-align:center;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">💳</div>
+  <div class="logo-text">Fin<span>Sense</span></div>
+  <div class="hbadge">PERSONAL LOAN AI</div>
+</header>
+
+<main>
+  <div class="hero">
+    <h2>Personal Loan Eligibility Predictor</h2>
+    <p>AI-powered decision with full breakdown — CIBIL analysis, max loan, EMI & tips</p>
+    <div class="hero-chips">
+      <span class="chip">📊 CIBIL Analysis</span>
+      <span class="chip">💸 Real DTI Check</span>
+      <span class="chip">🏦 Actual Max Loan</span>
+      <span class="chip">💡 Improvement Tips</span>
+    </div>
+  </div>
+
+  <!-- Step bar -->
+  <div class="steps">
+    <div class="step active" id="tab0"><span class="step-num">01</span>Personal</div>
+    <div class="step" id="tab1"><span class="step-num">02</span>Employment</div>
+    <div class="step" id="tab2"><span class="step-num">03</span>Financials</div>
+    <div class="step" id="tab3"><span class="step-num">04</span>Loan</div>
+  </div>
+
+  <div class="card">
+    <form id="loanForm" novalidate>
+
+      <!-- PAGE 1: PERSONAL -->
+      <div class="page active" id="page0">
+        <div class="sec-label">👤 Personal Information</div>
+        <div class="form-body">
+          <div class="grid2">
+            <div class="field">
+              <label>Age <span class="req">*</span></label>
+              <div class="pfx-wrap has-sfx">
+                <input type="number" name="Age" placeholder="25" min="21" max="60" required/>
+                <span class="sfx">yrs</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>Gender <span class="req">*</span></label>
+              <div class="pills">
+                <input type="radio" name="Gender" id="gM" value="Male" required>
+                <label for="gM">Male</label>
+                <input type="radio" name="Gender" id="gF" value="Female">
+                <label for="gF">Female</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Marital Status <span class="req">*</span></label>
+            <div class="pills">
+              <input type="radio" name="Marital_Status" id="mSi" value="Single" required>
+              <label for="mSi">Single</label>
+              <input type="radio" name="Marital_Status" id="mMa" value="Married">
+              <label for="mMa">Married</label>
+              <input type="radio" name="Marital_Status" id="mDi" value="Divorced">
+              <label for="mDi">Divorced</label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Number of Dependents <span class="req">*</span></label>
+            <div class="pills">
+              <input type="radio" name="Dependents" id="d0" value="0" required>
+              <label for="d0">None</label>
+              <input type="radio" name="Dependents" id="d1" value="1">
+              <label for="d1">1</label>
+              <input type="radio" name="Dependents" id="d2" value="2">
+              <label for="d2">2</label>
+              <input type="radio" name="Dependents" id="d3" value="3">
+              <label for="d3">3+</label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Highest Education <span class="req">*</span></label>
+            <div class="pills">
+              <input type="radio" name="Education" id="eHS" value="High School" required>
+              <label for="eHS">High School</label>
+              <input type="radio" name="Education" id="eB" value="Bachelor">
+              <label for="eB">Bachelor's</label>
+              <input type="radio" name="Education" id="eM" value="Master">
+              <label for="eM">Master's</label>
+              <input type="radio" name="Education" id="eP" value="PhD">
+              <label for="eP">PhD</label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>City Tier <span class="req">*</span></label>
+            <div class="pills">
+              <input type="radio" name="City_Tier" id="ct1" value="Tier 1" required>
+              <label for="ct1">Tier 1 — Metro (Mumbai, Bengaluru…)</label>
+              <input type="radio" name="City_Tier" id="ct2" value="Tier 2">
+              <label for="ct2">Tier 2 — Large City</label>
+              <input type="radio" name="City_Tier" id="ct3" value="Tier 3">
+              <label for="ct3">Tier 3 — Town / Rural</label>
+            </div>
+          </div>
+        </div>
+        <div class="nav">
+          <button type="button" class="btn-next" onclick="goTo(1)">Next: Employment →</button>
+        </div>
+      </div>
+
+      <!-- PAGE 2: EMPLOYMENT -->
+      <div class="page" id="page1">
+        <div class="sec-label">💼 Employment Details</div>
+        <div class="form-body">
+          <div class="field">
+            <label>Employment Type <span class="req">*</span></label>
+            <div class="pills">
+              <input type="radio" name="Employment_Type" id="etS" value="Salaried" required onchange="toggleEmpCat()">
+              <label for="etS">Salaried</label>
+              <input type="radio" name="Employment_Type" id="etSE" value="Self-Employed" onchange="toggleEmpCat()">
+              <label for="etSE">Self-Employed / Freelancer</label>
+            </div>
+          </div>
+
+          <div class="field" id="empCatField">
+            <label>Current Employer Type <span class="req">*</span></label>
+            <div class="pills">
+              <input type="radio" name="Employer_Category" id="ecG" value="Government" required>
+              <label for="ecG">🏛 Government / PSU</label>
+              <input type="radio" name="Employer_Category" id="ecM" value="MNC">
+              <label for="ecM">🌐 MNC</label>
+              <input type="radio" name="Employer_Category" id="ecP" value="Private SME">
+              <label for="ecP">🏢 Private Company</label>
+              <input type="radio" name="Employer_Category" id="ecSt" value="Startup">
+              <label for="ecSt">🚀 Startup</label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Total Work Experience <span class="req">*</span></label>
+            <div class="pfx-wrap has-sfx">
+              <input type="number" name="Work_Experience_Yrs" placeholder="3" min="0" max="40" required/>
+              <span class="sfx">yrs</span>
+            </div>
+          </div>
+
+          <div style="flex:1"></div><!-- spacer to push nav to bottom -->
+        </div>
+        <div class="nav">
+          <button type="button" class="btn-back" onclick="goTo(0)">← Back</button>
+          <button type="button" class="btn-next" onclick="goTo(2)">Next: Financials →</button>
+        </div>
+      </div>
+
+      <!-- PAGE 3: FINANCIALS -->
+      <div class="page" id="page2">
+        <div class="sec-label">💰 Financial Information</div>
+        <div class="form-body">
+          <div class="grid2">
+            <div class="field">
+              <label>Net Monthly Income (take-home) <span class="req">*</span></label>
+              <div class="pfx-wrap">
+                <span class="pfx">₹</span>
+                <input type="number" id="incomeInp" name="Net_Monthly_Income" placeholder="55000" min="10000" required oninput="calcDTI()"/>
+              </div>
+            </div>
+            <div class="field">
+              <label>Monthly Living Expenses <span class="req">*</span></label>
+              <div class="pfx-wrap">
+                <span class="pfx">₹</span>
+                <input type="number" id="expInp" name="Monthly_Expenses" placeholder="25000" min="0" required oninput="calcDTI()"/>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Existing EMIs / Loan Obligations per month <span style="color:var(--muted);font-weight:400">(enter 0 if none)</span></label>
+            <div class="pfx-wrap">
+              <span class="pfx">₹</span>
+              <input type="number" id="emiInp" name="Existing_EMI" placeholder="0" min="0" value="0" oninput="calcDTI()"/>
+            </div>
+          </div>
+
+          <!-- Live DTI -->
+          <div class="dti-box">
+            <div>
+              <div class="dti-num" id="dtiNum" style="color:var(--muted)">—</div>
+              <div style="font-size:.68rem;color:var(--muted2);margin-top:.1rem">DTI Ratio</div>
+            </div>
+            <div class="dti-info">
+              <div class="dti-bar-wrap"><div class="dti-bar" id="dtiBar" style="width:0%"></div></div>
+              <div class="dti-lbl" id="dtiLbl">Enter income and expenses to see your ratio</div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>CIBIL Score <span class="req">*</span> <span style="color:var(--muted);font-weight:400">— check in your bank app or cibil.com (free)</span></label>
+            <div class="cibil-wrap">
+              <div style="display:flex;align-items:center;gap:.9rem">
+                <input type="range" name="CIBIL_Score" id="cibilRange" min="300" max="900" value="650" step="1" oninput="updateCIBIL(this.value)"/>
+                <span class="slider-val" id="cibilVal">650</span>
+              </div>
+              <div class="cibil-bar-bg"></div>
+              <div class="cibil-bands">
+                <span>300</span><span>Poor</span><span>Fair</span><span>Good</span><span>Excellent</span><span>900</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="nav">
+          <button type="button" class="btn-back" onclick="goTo(1)">← Back</button>
+          <button type="button" class="btn-next" onclick="goTo(3)">Next: Loan Details →</button>
+        </div>
+      </div>
+
+      <!-- PAGE 4: LOAN -->
+      <div class="page" id="page3">
+        <div class="sec-label">🏦 Loan Request</div>
+        <div class="form-body">
+          <div class="grid2">
+            <div class="field">
+              <label>Loan Amount Required <span class="req">*</span></label>
+              <div class="pfx-wrap">
+                <span class="pfx">₹</span>
+                <input type="number" name="Loan_Amount_Requested" placeholder="200000" min="10000" step="5000" required/>
+              </div>
+            </div>
+            <div class="field">
+              <label>Repayment Tenure <span class="req">*</span></label>
+              <select name="Loan_Tenure_Months" required>
+                <option value="">Select tenure</option>
+                <option value="12">12 months — 1 year</option>
+                <option value="24">24 months — 2 years</option>
+                <option value="36">36 months — 3 years</option>
+                <option value="48">48 months — 4 years</option>
+                <option value="60">60 months — 5 years</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Summary -->
+          <div class="summary-strip" id="summaryStrip" style="display:none">
+            <div style="font-size:.67rem;color:var(--muted2);font-weight:600;letter-spacing:.08em;text-transform:uppercase">📋 Your Application Summary</div>
+            <div class="summary-grid" id="summaryContent"></div>
+          </div>
+
+          <div style="flex:1"></div>
+        </div>
+        <div class="nav">
+          <button type="button" class="btn-back" onclick="goTo(2)">← Back</button>
+          <button type="submit" class="btn-submit" id="submitBtn">⚡ Check My Eligibility</button>
+        </div>
+      </div>
+
+    </form>
+  </div>
+</main>
+
+<!-- RESULT OVERLAY -->
+<div id="resultPanel">
+  <div class="result-wrap">
+    <div class="r-hero" id="rHero">
+      <div class="r-verdict" id="rVerdict"></div>
+      <div class="r-title" id="rTitle"></div>
+      <div class="r-conf" id="rConf"></div>
+      <div class="conf-bar-wrap"><div class="conf-bar" id="rConfBar" style="width:0%"></div></div>
+    </div>
+
+    <div class="r-stats">
+      <div class="r-stat">
+        <div class="r-stat-val" id="rMaxLoan">—</div>
+        <div class="r-stat-lbl">Max Eligible Loan</div>
+      </div>
+      <div class="r-stat">
+        <div class="r-stat-val" id="rEmiMax">—</div>
+        <div class="r-stat-lbl">EMI on Max Loan<div class="warn" id="rEmiMaxNote"></div></div>
+      </div>
+      <div class="r-stat">
+        <div class="r-stat-val" id="rRate">—</div>
+        <div class="r-stat-lbl">Est. Interest Rate</div>
+      </div>
+      <div class="r-stat">
+        <div class="r-stat-val" id="rEmiReq">—</div>
+        <div class="r-stat-lbl">EMI on Your Request</div>
+      </div>
+    </div>
+
+    <div class="r-body">
+      <div class="r-section" id="rStrengthSec">
+        <div class="r-sec-title green">✅ Strengths in your profile</div>
+        <ul class="r-list" id="rStrengths"></ul>
+      </div>
+      <div class="r-section" id="rReasonSec">
+        <div class="r-sec-title red">⚠️ Factors working against you</div>
+        <ul class="r-list" id="rReasons"></ul>
+      </div>
+      <div class="r-section" id="rTipSec">
+        <div class="r-sec-title amber">💡 How to improve your chances</div>
+        <div id="rTips"></div>
+      </div>
+      <button class="btn-retry" onclick="closeResult()">← Adjust and Try Again</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let currentPage = 0;
+
+function goTo(n) {
+  if (n > currentPage && !validatePage(currentPage)) return;
+  document.getElementById('page' + currentPage).classList.remove('active');
+  document.getElementById('tab' + currentPage).classList.remove('active');
+  if (n > currentPage) document.getElementById('tab' + currentPage).classList.add('done');
+  currentPage = n;
+  document.getElementById('page' + n).classList.add('active');
+  document.getElementById('tab' + n).classList.add('active');
+  if (n === 3) buildSummary();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function validatePage(p) {
+  const page = document.getElementById('page' + p);
+  const required = page.querySelectorAll('[required]');
+  let ok = true;
+  required.forEach(el => {
+    if (el.type === 'radio') {
+      const checked = [...page.querySelectorAll(`[name="${el.name}"]`)].some(r => r.checked);
+      if (!checked) {
+        el.closest('.field').querySelector('label').style.color = 'var(--red)';
+        ok = false;
+      } else {
+        el.closest('.field').querySelector('label').style.color = '';
+      }
+    } else if (!el.value.trim()) {
+      el.style.borderColor = 'var(--red)';
+      ok = false;
+    } else {
+      el.style.borderColor = '';
+    }
+  });
+  if (!ok) showToast('Please fill all required fields');
+  return ok;
+}
+
+function toggleEmpCat() {
+  const isSE = document.getElementById('etSE').checked;
+  const field = document.getElementById('empCatField');
+  field.style.display = isSE ? 'none' : 'flex';
+
+  let hidden = document.getElementById('hiddenSE');
+  if (isSE) {
+    if (!hidden) {
+      hidden = document.createElement('input');
+      hidden.type = 'hidden'; hidden.name = 'Employer_Category';
+      hidden.id = 'hiddenSE'; hidden.value = 'Self-Employed';
+      document.getElementById('loanForm').appendChild(hidden);
+    }
+  } else {
+    if (hidden) hidden.remove();
+    document.querySelectorAll('[name="Employer_Category"]').forEach(r => r.checked = false);
+  }
+}
+
+function updateCIBIL(v) {
+  document.getElementById('cibilVal').textContent = v;
+  const pct = ((v - 300) / (900 - 300)) * 100;
+  document.getElementById('cibilRange').style.setProperty('--pct', pct + '%');
+}
+updateCIBIL(650);
+
+function calcDTI() {
+  const income = parseFloat(document.getElementById('incomeInp').value) || 0;
+  const exp = parseFloat(document.getElementById('expInp').value) || 0;
+  const emi = parseFloat(document.getElementById('emiInp').value) || 0;
+  if (!income) { document.getElementById('dtiNum').textContent = '—'; return; }
+
+  const dti = (exp + emi) / income;
+  const pct = Math.min(dti * 100, 100);
+  const num = document.getElementById('dtiNum');
+  const bar = document.getElementById('dtiBar');
+  const lbl = document.getElementById('dtiLbl');
+
+  num.textContent = (dti * 100).toFixed(1) + '%';
+  bar.style.width = pct + '%';
+
+  if (dti < 0.35) {
+    bar.style.background = 'var(--green)'; num.style.color = 'var(--green)';
+    lbl.textContent = '✅ Excellent — strong repayment capacity';
+  } else if (dti < 0.50) {
+    bar.style.background = 'var(--amber)'; num.style.color = 'var(--amber)';
+    lbl.textContent = '⚠️ Acceptable — lenders will look carefully';
+  } else if (dti < 0.65) {
+    bar.style.background = '#f97316'; num.style.color = '#f97316';
+    lbl.textContent = '🔴 High DTI — will likely affect approval';
+  } else {
+    bar.style.background = 'var(--red)'; num.style.color = 'var(--red)';
+    lbl.textContent = '🚨 Very high — near-certain rejection territory';
+  }
+}
+
+function buildSummary() {
+  const fd = new FormData(document.getElementById('loanForm'));
+  const d = Object.fromEntries(fd.entries());
+  const rows = [
+    ['👤 Age', d.Age + ' yrs'],
+    ['🎓 Education', d.Education],
+    ['💼 Employment', d.Employment_Type],
+    ['🏙 City', d.City_Tier],
+    ['💰 Income', '₹' + Number(d.Net_Monthly_Income || 0).toLocaleString('en-IN')],
+    ['📊 DTI', document.getElementById('dtiNum').textContent],
+    ['🏦 CIBIL Score', d.CIBIL_Score],
+    ['📅 Dependents', d.Dependents],
+    ['🔧 Experience', d.Work_Experience_Yrs + ' yrs'],
+  ];
+  document.getElementById('summaryContent').innerHTML = rows.map(([l, v]) =>
+    `<span style="color:var(--muted)">${l}</span><span style="color:var(--text);font-weight:500">${v}</span>`
+  ).join('');
+  document.getElementById('summaryStrip').style.display = 'block';
+}
+
+document.getElementById('loanForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!validatePage(3)) return;
+  const btn = document.getElementById('submitBtn');
+  btn.classList.add('loading');
+  btn.textContent = 'Analysing…';
+
+  const body = Object.fromEntries(new FormData(e.target).entries());
+  try {
+    const res = await fetch('/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok) { showToast(data.error || 'Something went wrong'); return; }
+    showResult(data);
+  } catch (err) {
+    showToast('Network error — is the server running?');
+  } finally {
+    btn.classList.remove('loading');
+    btn.textContent = '⚡ Check My Eligibility';
+  }
+});
+
+function showResult(data) {
+  const ok = data.approved;
+  const hero = document.getElementById('rHero');
+  hero.className = 'r-hero ' + (ok ? 'approved' : 'rejected');
+  document.getElementById('rVerdict').textContent = ok ? '🎉' : '😞';
+  document.getElementById('rTitle').textContent = ok ? 'Loan Likely Approved' : 'Loan Likely Rejected';
+  document.getElementById('rConf').textContent = `Model confidence: ${data.confidence}%`;
+
+  const cbar = document.getElementById('rConfBar');
+  cbar.className = 'conf-bar ' + (ok ? 'approved-bar' : 'rejected-bar');
+  setTimeout(() => cbar.style.width = data.confidence + '%', 80);
+
+  // Stats
+  document.getElementById('rMaxLoan').textContent = data.max_eligible > 0
+    ? '₹' + data.max_eligible.toLocaleString('en-IN') : 'Not Eligible';
+  document.getElementById('rRate').textContent = data.interest_rate + '% p.a.';
+
+  // EMI on max loan - with affordability note
+  if (data.max_eligible > 0) {
+    document.getElementById('rEmiMax').textContent = '₹' + data.emi_on_max.toLocaleString('en-IN') + '/mo';
+    document.getElementById('rEmiMaxNote').textContent = 'EMI you can afford';
+  } else {
+    document.getElementById('rEmiMax').textContent = '—';
+  }
+
+  // EMI on requested amount
+  document.getElementById('rEmiReq').textContent = '₹' + data.emi_on_requested.toLocaleString('en-IN') + '/mo';
+
+  // Strengths
+  const sl = document.getElementById('rStrengths');
+  sl.innerHTML = (data.strengths || []).map(s => `<li><span class="ico">✅</span>${s}</li>`).join('');
+  document.getElementById('rStrengthSec').style.display = data.strengths.length ? '' : 'none';
+
+  // Reasons
+  const rl = document.getElementById('rReasons');
+  rl.innerHTML = (data.reasons || []).map(r => `<li><span class="ico">❌</span>${r}</li>`).join('');
+  document.getElementById('rReasonSec').style.display = data.reasons.length ? '' : 'none';
+
+  // Tips
+  document.getElementById('rTips').innerHTML = (data.tips || [])
+    .map(t => `<div class="tip-card"><span class="ico">💡</span>${t}</div>`).join('');
+  document.getElementById('rTipSec').style.display = data.tips.length ? '' : 'none';
+
+  document.getElementById('resultPanel').classList.add('show');
+  document.getElementById('resultPanel').scrollTop = 0;
+}
+
+function closeResult() {
+  document.getElementById('resultPanel').classList.remove('show');
+  document.getElementById('rConfBar').style.width = '0%';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = '⚠️ ' + msg; t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 4500);
+}
+</script>
+</body>
+</html>
